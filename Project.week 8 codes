@@ -1,0 +1,57 @@
+pip install django 
+
+django-admin startproject WeatherApp
+cd WeatherApp
+
+python manage.py startapp weather
+INSTALLED_APPS = [
+    ...
+    'weather',
+]
+
+#Get an api key from a weather service 
+
+
+from django.shortcuts import render
+import requests
+
+def index(request):
+    if 'city' in request.GET:
+        city = request.GET['city']
+        api_key = 'YOUR_API_KEY'
+        url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}'
+        response = requests.get(url)
+        weather_data = response.json()
+    else:
+        weather_data = {}
+    return render(request, 'weather/index.html', {'weather_data': weather_data})
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather App</title>
+</head>
+<body>
+    <h1>Weather App</h1>
+    <form method="GET">
+        <input type="text" name="city" placeholder="Enter city">
+        <button type="submit">Get Weather</button>
+    </form>
+
+    {% if weather_data %}
+        <h2>Weather in {{ weather_data.name }}</h2>
+        <p>Temperature: {{ weather_data.main.temp }}K</p>
+        <p>Weather: {{ weather_data.weather.0.description }}</p>
+    {% endif %}
+</body>
+</html>
+
+from django.contrib import admin
+from django.urls import path
+from weather import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', views.index, name='index'),
+]
+python manage.py runserver
